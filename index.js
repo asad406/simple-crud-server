@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion,ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -29,12 +29,12 @@ async function run() {
     const usersCollection = client.db('usersDB').collection('users');
 
     //Data read form database
-    app.get('/users', async(req,res) => {
+    app.get('/users', async (req, res) => {
       const cursor = usersCollection.find();
       const result = await cursor.toArray();
       res.send(result)
     })
-//Data receive from client and data insert to database from server.
+    //Data receive from client and data insert to database from server.
     app.post('/users', async (req, res) => {
       const user = req.body;
       console.log(user)
@@ -43,12 +43,33 @@ async function run() {
       res.send(result)
 
     })
-    
-//Delete data from database 
-
-    app.delete('/users/:id', async(req,res) => {
+    //Database update
+    app.get('/users/:id', async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.findOne(query);
+      res.send(result)
+    })
+
+    app.put('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const user = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true }
+      const updatedUser = {
+        $set: {
+          name: user.name,
+          email: user.email
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updatedUser, options)
+      res.send(result);
+    })
+    //Delete data from database 
+
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
       const result = await usersCollection.deleteOne(query);
       res.send(result);
     })
